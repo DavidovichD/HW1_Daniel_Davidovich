@@ -1,0 +1,333 @@
+<!doctype html>
+<html class="no-js" lang="zxx">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Index</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- <link rel="manifest" href="site.webmanifest"> -->
+    <!-- Place favicon.ico in the root directory -->
+
+    <!-- CSS here -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/nice-select.css">
+    <link rel="stylesheet" href="css/flaticon.css">
+    <link rel="stylesheet" href="css/gijgo.css">
+    <link rel="stylesheet" href="css/animate.min.css">
+    <link rel="stylesheet" href="css/slick.css">
+    <link rel="stylesheet" href="css/slicknav.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- <link rel="stylesheet" href="css/responsive.css"> -->
+    <script src="js/JSON.js"></script>
+    <script>
+
+        function init() {
+            IngArr = [];
+            DishArr = [];
+            for (var i = 0; i < ingredientJson.length; i++) {
+                var id = i + 1;
+                var name = ingredientJson[i].name;
+                var image = ingredientJson[i].image;
+                var calories = ingredientJson[i].calories;
+                name = new Ingredient(id, name, image, calories);
+                IngArr.push(name);
+            }
+            resetPage();
+        }
+
+        function resetPage() {
+            var str = "";
+            if (DishArr[0] != undefined) {
+                for (var i = 0; i < DishArr.length; i++) {
+                    str += DishArr[i].RenderDish();
+                }
+                document.getElementById("PH").innerHTML = str;
+            }
+            else
+                document.getElementById("PH").innerHTML = str;
+        }
+
+        class Ingredient {
+            constructor(ingId, ingName, ingImage, ingCalories) {
+                this.id = ingId;
+                this.name = ingName;
+                this.image = ingImage;
+                this.calories = ingCalories;
+            }
+
+            RenderIng() {
+                let str = `<img class='images' src="${this.image}">`;
+                str += `<h3>${this.name}</h3>`;
+                str += `<p>Calories: ${this.calories}</p>`;
+                return str;
+            }
+        } 	
+
+
+        class DishRecipe {
+            dishIngsArr = [];
+            constructor(dishName, ingredients, dishTime, dishCookingMethod, dishImage) {
+                this.name = dishName;
+                this.dishIngsArr = ingredients;
+                this.time = dishTime;
+                this.cookingMethod = dishCookingMethod;
+                this.image = dishImage;
+            }
+
+            RenderDish() {
+                let str = `<div class='single_dish text-center'>`;
+                str += `<img class='images' src="${this.image}">`;
+                str += `<h3>${this.name}</h3>`;
+                str += `<p>Cooking method: ${this.cookingMethod}</p>`;
+                str += `<p>Cooking time: ${this.time} minutes</p>`;
+                str += `<p>Calories: ${this.GetTotalCalories()}</p>`;
+                str += `<button id="openModalBtn" class="btn btn-primary" onclick="getDishIngridients('${this.name}')" type="button" data-toggle="modal" data-target="#myModal">Open Ingredients</button>`;
+                str += `</div>`;
+                return str;
+            }
+
+            GetTotalCalories() {
+                let totalCal = 0;
+                for (var i = 0; i < this.dishIngsArr.length; i++) {
+                    totalCal += this.dishIngsArr[i].calories;
+                }
+                return totalCal;
+            }
+
+            GetIngredients() {
+                let str = "";
+                str += `<div class='row'>`;
+                for (var i = 0; i < this.dishIngsArr.length; i++) {
+                    str += `<div class="col-4">`;
+                    str += this.dishIngsArr[i].RenderIng();
+                    str += `</div>`;
+                }
+                document.getElementById("modalPH").innerHTML = str;
+            }
+        }
+
+        function newIng() {
+            document.getElementById("PH").innerHTML = "";
+            let str = '<div class="single_dish text-center">';
+            str += '<h3>Add an Ingredient:</h3>';
+            str += '<p>Name:</p><input id="IngName" type="text" />';
+            str += '<p>Image URL:</p><input id="IngImage" type="text" />';
+            str += '<p>Calories:</p><input id="IngCalories" type="number" />';
+            str += '<br /><br />';
+            str += '<button class="btn" onclick="addIng()" id="addIngBTN">ADD</button>';
+            str += '</div>';
+            document.getElementById("PH").innerHTML = str;
+        }
+
+        function addIng() {
+            if (document.getElementById("IngName").value == "" || document.getElementById("IngImage").value == "" || document.getElementById("IngCalories").value == "")
+                alert("Missing fields");
+            else {
+                let id = ingredientJson.length + 1;
+                let name = document.getElementById("IngName").value;
+                let image = document.getElementById("IngImage").value;
+                let calories = document.getElementById("IngCalories").value;
+                let newIngredient = new Ingredient(id, name, image, calories);
+                IngArr.push(newIngredient);
+                alert("Ingredient was added");
+                resetPage();
+            }
+        }
+
+        function newDish() {
+            document.getElementById("PH").innerHTML = "";
+            let str = '<div class="single_dish text-center">';
+            str += '<h3>Add a Recipe:</h3>';
+            str += '<p>Name:</p><input id="RecName" type="text" />';
+            str += '<p>Image URL:</p><input id="RecImage" type="text" />';
+            str += '<p>Cooking method:</p><input id="RecMethod" type="text" />';
+            str += '<p>Cooking time (min):</p><input id="RecTime" type="number" />';
+            str += '<br /><br />';
+            str += '<button class="btn" onclick="addRec()" id="addRecBTN">ADD</button>';
+            str += '<br /><br />';
+            str += '<p>Choose ingredients below:</p>';
+            str += '</div>';
+            for (var i = 0; i < IngArr.length; i++) {
+                str += "<div class='single_dish text-center'>";
+                str += `<input type="checkbox" id="c${IngArr[i].id}" class="checkboxes"><br />`
+                str += IngArr[i].RenderIng();
+                str += "</div>";
+            }
+            document.getElementById("PH").innerHTML = str;
+        }
+
+        function addRec() {
+            if (document.getElementById("RecName").value == "" || document.getElementById("RecImage").value == "" || document.getElementById("RecMethod").value == "" || document.getElementById("RecTime").value == "")
+                alert("Missing fields");
+            else {
+                let checkboxArr = document.getElementsByClassName("checkboxes");
+                var dishIngredients = [];
+                for (var i = 0; i < checkboxArr.length; i++) {
+                    if (checkboxArr[i].checked == true)
+                        dishIngredients.push(getSelectedIngredient(checkboxArr[i].id))
+                }
+                let name = document.getElementById("RecName").value;
+                let image = document.getElementById("RecImage").value;
+                let time = document.getElementById("RecTime").value;
+                let method = document.getElementById("RecMethod").value;
+                let newRec = new DishRecipe(name, dishIngredients, time, method, image);
+                DishArr.push(newRec);
+                alert("Dish was added");
+                resetPage();
+            }
+        }
+
+        function getSelectedIngredient(id) {
+            for (var i = 0; i < IngArr.length; i++) {
+                if (id.slice(1) == IngArr[i].id)
+                    return IngArr[i];
+            }
+        }
+
+        function getDishIngridients(dish) {
+            for (var i = 0; i < DishArr.length; i++) {
+                if (dish == DishArr[i].name) {
+                    DishArr[i].GetIngredients();
+                    return;
+                }
+            }
+        }
+
+    </script>
+</head>
+
+<body onload="init()">
+    <!--[if lte IE 9]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+        <![endif]-->
+    <!-- header-start -->
+    <header>
+        <div class="header-area ">
+            <div id="sticky-header" class="main-header-area ">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-xl-3 col-lg-2">
+                            <div class="logo">
+                                <a href="index.html">
+                                    <img src="img/logo.png" alt="">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-xl-6 col-lg-7">
+                        </div>
+                        <div class="col-xl-3 col-lg-3 d-none d-lg-block">
+                            <div class="search_icon">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mobile_menu d-block d-lg-none"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- header-end -->
+    <!-- slider_area_start -->
+    <div class="slider_area">
+        <div class="single_slider  d-flex align-items-center slider_bg_1">
+            <div class="container">
+                <div class="row align-items-center justify-content-center">
+                    <div class="col-xl-8 ">
+                        <div class="slider_text text-center">
+                            <div class="text">
+                                <h3>
+                                    Welcome to our cooking app
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- slider_area_end -->
+    <!-- dish_area start  -->
+    <div class="dish_area">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12 buttons">
+                    <button class="btn" onclick="newIng()">Add an Ingredient</button>
+                    <button class="btn" onclick="newDish()">Add a Dish</button>
+                </div>
+                <div class="col-xl-12">
+                    <div id="PH" class="dish_wrap d-flex">
+                        <!--<div class="single_dish text-center">
+                            <div class="thumb">
+                                <img src="img/recepie/recpie_4.png" alt="">
+                            </div>
+                            <h3>Birthday Catering</h3>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                        </div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--/ dish_area end  -->
+    <!-- The Modal -->
+    <div class="modal" id="myModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Dish's Ingridients</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div id="modalPH" class="modal-body">
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="closeModalBtn" data-dismiss="modal">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- JS here -->
+    <script src="js/vendor/modernizr-3.5.0.min.js"></script>
+    <script src="js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/isotope.pkgd.min.js"></script>
+    <script src="js/ajax-form.js"></script>
+    <script src="js/waypoints.min.js"></script>
+    <script src="js/jquery.counterup.min.js"></script>
+    <script src="js/imagesloaded.pkgd.min.js"></script>
+    <script src="js/scrollIt.js"></script>
+    <script src="js/jquery.scrollUp.min.js"></script>
+    <script src="js/wow.min.js"></script>
+    <script src="js/nice-select.min.js"></script>
+    <script src="js/jquery.slicknav.min.js"></script>
+    <script src="js/jquery.magnific-popup.min.js"></script>
+    <script src="js/plugins.js"></script>
+    <script src="js/gijgo.min.js"></script>
+
+    <!--contact js-->
+    <script src="js/contact.js"></script>
+    <script src="js/jquery.ajaxchimp.min.js"></script>
+    <script src="js/jquery.form.js"></script>
+    <script src="js/jquery.validate.min.js"></script>
+    <script src="js/mail-script.js"></script>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>
